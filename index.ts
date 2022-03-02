@@ -8,5 +8,7 @@ import { SlackReporter } from "./src/reporter";
     const reporter = new SlackReporter(process.env.SLACK_WEBHOOK ?? "invalid-uri");
     const comparator = new Comparator(source, reporter);
 
+    await comparator.compareLatestVersions();
+
     await source.closeConnection();
 })();

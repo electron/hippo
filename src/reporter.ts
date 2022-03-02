@@ -13,14 +13,21 @@ export interface Reporter {
 }
 
 export class SlackReporter implements Reporter {
+    private ccUsers: string[];
     private webhook: IncomingWebhook;
 
-    constructor(webhookUrl: string) {
+    constructor(webhookUrl: string, settings?: { ccUsers?: string[] }) {
+        this.ccUsers = settings?.ccUsers ?? [];
         this.webhook = new IncomingWebhook(webhookUrl);
     }
 
     report(changes: SizeChange[]): void {
-        const blocks = [this.generateHeaderBlock(), { type: "divider" }, ...changes.map(this.generateSectionBlock)];
+        const blocks = [
+            this.generateHeaderBlock(),
+            this.generateCcBlock(),
+            { type: "divider" },
+            ...changes.map(this.generateSectionBlock),
+        ].filter((block) => !!block) as any;
         this.webhook.send({ blocks });
     }
 
@@ -29,6 +36,20 @@ export class SlackReporter implements Reporter {
             type: "section",
             text: { type: "mrkdwn", text: ":warning:  *significant electron binary size changes*  :hippopotamus:" },
         };
+    }
+
+    private generateCcBlock() {
+        return this.ccUsers.length > 0
+            ? {
+                  type: "context",
+                  elements: [
+                      {
+                          type: "mrkdwn",
+                          text: `cc ${this.ccUsers.map((user) => `<@${user}>`).join(", ")}`,
+                      },
+                  ],
+              }
+            : undefined;
     }
 
     private generateSectionBlock({ absolute, base, changed, relative }: SizeChange) {
