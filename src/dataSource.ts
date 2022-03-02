@@ -4,6 +4,7 @@ import * as semver from "semver";
 export interface AssetMeta {
     sizeInBytes: number;
     targetPlatform: string;
+    version: string;
 }
 
 export interface DataSource {
@@ -25,11 +26,12 @@ class ElectronDistSize extends Model {
 // electron dist binaries source using postgres database
 export class ElectronDataSource implements DataSource {
     // db connection
-    private sequelize = new Sequelize(process.env.POSTGRES_URI ?? "invalid-url", {
-        dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
-    });
+    private sequelize: Sequelize;
 
-    constructor() {
+    constructor(postgresUri: string) {
+        this.sequelize = new Sequelize(postgresUri, {
+            dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
+        });
         this.registerOrmModels();
     }
 
@@ -49,6 +51,7 @@ export class ElectronDataSource implements DataSource {
         return distSizes.map(({ size, platformArch }) => ({
             sizeInBytes: size,
             targetPlatform: platformArch,
+            version,
         }));
     }
 
