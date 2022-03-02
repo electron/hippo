@@ -1,0 +1,23 @@
+{
+    "name": "hippo",
+    "version": "1.0.0",
+    "author": "Micha Hanselmann",
+    "description": "asset size comparison and reporting tool",
+    "main": "index.ts",
+    "scripts": {
+        "start": "ts-node index.ts",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prepare": "husky install"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "devDependencies": {
+        "husky": "^7.0.4",
+        "lint-staged": "^12.3.4",
+        "prettier": "^2.5.1",
+        "ts-node": "^10.6.0"
+    },
+    "lint-staged": {
+        "*.{js,ts}": "prettier --write"
+    }
+}
