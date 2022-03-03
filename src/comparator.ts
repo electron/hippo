@@ -1,8 +1,8 @@
 import { AssetMeta, DataSource } from "./dataSource";
 import { Reporter, SizeChange } from "./reporter";
 
-// only include relative size changes exceeding (0.01%)
-const RELATIVE_CHANGE_THRESHOLD = 0.0001;
+// only include relative size changes exceeding (0.1%)
+const RELATIVE_CHANGE_THRESHOLD = 0.001;
 
 export class Comparator {
     private source: DataSource;
@@ -23,7 +23,7 @@ export class Comparator {
 
     async compareLatestVersions(): Promise<SizeChange[]> {
         const latestVersions = await this.source.getLatestVersions();
-        console.log("latest versions:", latestVersions);
+        console.log("latest versions:", latestVersions.join(", "));
         const sizeChanges = [];
         for (const version of latestVersions) {
             const previous = await this.source.getPreviousVersion(version);
@@ -47,6 +47,7 @@ export class Comparator {
     }
 
     private async fetchMetasAndCompare(baseVersion: string, changedVersion: string): Promise<SizeChange[]> {
+        console.log(`compare ${baseVersion} -> ${changedVersion}`);
         const baseMetas = await this.source.getAssetMetas(baseVersion);
         const changedMetas = await this.source.getAssetMetas(changedVersion);
         const comparableMetas = baseMetas

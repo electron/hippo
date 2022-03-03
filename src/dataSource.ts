@@ -31,6 +31,7 @@ export class ElectronDataSource implements DataSource {
     constructor(postgresUri: string) {
         this.sequelize = new Sequelize(postgresUri, {
             dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
+            logging: process.env.NODE_ENV === "dev",
         });
         this.registerOrmModels();
     }
@@ -59,14 +60,22 @@ export class ElectronDataSource implements DataSource {
         const versions = await this.fetchVersions();
         versions.sort(semver.rcompare);
 
-        // stables
-        const majorLines = [...new Set(versions.filter((v) => !semver.prerelease(v)).map((v) => semver.major(v)))];
+        // is nightly predicate & filter nightlies
+        const isNightly = (version: string) => {
+            const pre = semver.prerelease(version);
+            return pre && pre.length > 1 && pre[0] === "nightly";
+        };
+        const nonNightlies = versions.filter((v) => !isNightly(v));
+
+        // stable, alpha, beta
+        const majorLines = [...new Set(nonNightlies.map((v) => semver.major(v)))];
+        const latestVersions = majorLines.map((majorVer) => nonNightlies.find((v) => semver.major(v) === majorVer)!);
 
         // nightlies (only latest)
-        const nightly = versions.find((v) => !!semver.prerelease(v));
-        if (nightly) majorLines.push(semver.major(nightly));
+        const nightly = versions.find(isNightly);
+        if (nightly) latestVersions.push(nightly);
 
-        return majorLines.map((majorVer) => versions.find((v) => semver.major(v) === majorVer)!);
+        return latestVersions;
     }
 
     async getPreviousVersion(ofVersion: string): Promise<string | undefined> {
