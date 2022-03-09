@@ -1,3 +1,4 @@
+import { FileCache } from "./cache";
 import { AssetMeta, DataSource } from "./dataSource";
 import { Reporter, SizeChange } from "./reporter";
 
@@ -5,11 +6,13 @@ import { Reporter, SizeChange } from "./reporter";
 const RELATIVE_CHANGE_THRESHOLD = 0.001;
 
 export class Comparator {
+    private cache: FileCache;
     private source: DataSource;
     private reporter: Reporter;
     private threshold: number;
 
     constructor(source: DataSource, reporter: Reporter, threshold: number = RELATIVE_CHANGE_THRESHOLD) {
+        this.cache = new FileCache();
         this.source = source;
         this.reporter = reporter;
         this.threshold = threshold;
@@ -36,11 +39,14 @@ export class Comparator {
     }
 
     private reportSignificantSizeChanges(sizeChanges: SizeChange[]) {
-        const filtered = sizeChanges.filter(({ relative }) => Math.abs(relative) > this.threshold);
+        const filtered = sizeChanges
+            .filter(({ relative }) => Math.abs(relative) > this.threshold)
+            .filter((s) => !this.cache.has(JSON.stringify(s)));
         filtered.sort((a, b) => b.relative - a.relative); // sort by significance
         if (filtered.length > 0) {
             this.reporter.report(filtered);
             console.log(`reported ${filtered.length} size changes`);
+            filtered.forEach((s) => this.cache.put(JSON.stringify(s))); // cache reports
         } else {
             console.log("no size changes to report");
         }
