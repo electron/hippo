@@ -22,7 +22,8 @@ jobs:
       run: npm start
       env:
         POSTGRES_URI: ${{ secrets.POSTGRES_URI }}
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         CC_USERS: ${{ secrets.CC_USERS }}
     - name: persist cache
       uses: actions/upload-artifact@v3
