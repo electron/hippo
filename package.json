@@ -24,7 +24,7 @@
         "*.{js,ts}": "prettier --write"
     },
     "dependencies": {
-        "@slack/webhook": "^6.1.0",
+        "@slack/bolt": "^3.11.3",
         "dotenv": "^16.0.0",
         "pg": "^8.7.3",
         "pg-hstore": "^2.3.4",

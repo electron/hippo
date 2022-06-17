@@ -1,4 +1,4 @@
-import { IncomingWebhook } from "@slack/webhook";
+import { WebClient as SlackClient } from "@slack/web-api";
 import { AssetMeta } from "./dataSource";
 
 export interface SizeChange {
@@ -14,27 +14,44 @@ export interface Reporter {
 
 export class SlackReporter implements Reporter {
     private ccUsers: string[];
-    private webhook: IncomingWebhook;
+    private slack: SlackClient;
+    private slackChannelId: string;
 
-    constructor(webhookUrl: string, settings?: { ccUsers?: string[] }) {
+    constructor(slackToken: string, slackChannelId: string, settings?: { ccUsers?: string[] }) {
         this.ccUsers = settings?.ccUsers ?? [];
-        this.webhook = new IncomingWebhook(webhookUrl);
+        this.slack = new SlackClient(slackToken);
+        this.slackChannelId = slackChannelId;
     }
 
-    report(changes: SizeChange[]): void {
-        const blocks = [
-            this.generateHeaderBlock(),
-            this.generateCcBlock(),
-            { type: "divider" },
-            ...changes.map(this.generateSectionBlock),
-        ].filter((block) => !!block) as any;
-        this.webhook.send({ blocks });
+    async report(changes: SizeChange[]) {
+        // main message
+        const { message } = await this.slack.chat.postMessage({
+            blocks: [this.generateHeaderBlock(), this.generateCcBlock(), { type: "divider" }].filter(
+                (block) => !!block,
+            ) as any,
+            channel: this.slackChannelId,
+            text: this.getHeaderText(),
+        });
+
+        // threaded details
+        if (message) {
+            this.slack.chat.postMessage({
+                blocks: changes.map(this.generateSectionBlock),
+                channel: this.slackChannelId,
+                text: "(see message for details)",
+                thread_ts: message.ts,
+            });
+        }
+    }
+
+    private getHeaderText() {
+        return ":warning:  *significant electron binary size changes*  :hippopotamus:";
     }
 
     private generateHeaderBlock() {
         return {
             type: "section",
-            text: { type: "mrkdwn", text: ":warning:  *significant electron binary size changes*  :hippopotamus:" },
+            text: { type: "mrkdwn", text: this.getHeaderText() },
         };
     }
 

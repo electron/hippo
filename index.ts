@@ -10,7 +10,11 @@ import { SlackReporter } from "./src/reporter";
 
     // init comparator
     const source = new ElectronDataSource(process.env.POSTGRES_URI ?? "invalid-uri");
-    const reporter = new SlackReporter(process.env.SLACK_WEBHOOK ?? "invalid-uri", { ccUsers });
+    const reporter = new SlackReporter(
+        process.env.SLACK_TOKEN ?? "invalid-token",
+        process.env.SLACK_CHANNEL_ID ?? "invalid-id",
+        { ccUsers },
+    );
     const comparator = new Comparator(source, reporter);
 
     // run & cleanup
