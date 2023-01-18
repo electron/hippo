@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "author": "Micha Hanselmann",
     "description": "asset size comparison and reporting tool",
+    "private": true,
     "main": "index.ts",
     "scripts": {
         "start": "ts-node index.ts",
