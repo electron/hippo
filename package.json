@@ -7,8 +7,9 @@
     "main": "index.ts",
     "scripts": {
         "start": "ts-node index.ts",
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "lint": "prettier --check */*.ts",
+        "format": "prettier --write */*.ts"
     },
     "keywords": [],
     "license": "MIT",
@@ -22,7 +23,7 @@
         "typescript": "^4.6.2"
     },
     "lint-staged": {
-        "*.{js,ts}": "prettier --write"
+        "*/*.ts": "prettier --write"
     },
     "dependencies": {
         "@slack/bolt": "^3.11.3",
