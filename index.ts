@@ -3,21 +3,26 @@ import { Comparator } from "./src/comparator";
 import { ElectronDataSource } from "./src/dataSource";
 import { SlackReporter } from "./src/reporter";
 
-// main
-(async () => {
-  // parse args
-  const ccUsers = process.env.CC_USERS ? process.env.CC_USERS.split(",") : undefined;
+const {
+  SLACK_TOKEN,
+  SLACK_CHANNEL_ID,
+  POSTGRES_URI
+} = process.env;
 
-  // init comparator
-  const source = new ElectronDataSource(process.env.POSTGRES_URI ?? "invalid-uri");
+const main = async () => {
+  const source = new ElectronDataSource(POSTGRES_URI ?? "invalid-uri");
   const reporter = new SlackReporter(
-    process.env.SLACK_TOKEN ?? "invalid-token",
-    process.env.SLACK_CHANNEL_ID ?? "invalid-id",
-    { ccUsers },
+    SLACK_TOKEN ?? "invalid-token",
+    SLACK_CHANNEL_ID ?? "invalid-id",
   );
+
   const comparator = new Comparator(source, reporter);
 
-  // run & cleanup
   await comparator.compareLatestVersions();
   await source.closeConnection();
-})();
+}
+
+main().catch((err) => {
+  console.error(err);
+})
+

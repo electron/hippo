@@ -13,27 +13,21 @@ export interface Reporter {
 }
 
 export class SlackReporter implements Reporter {
-  private ccUsers: string[];
   private slack: SlackClient;
   private slackChannelId: string;
 
-  constructor(slackToken: string, slackChannelId: string, settings?: { ccUsers?: string[] }) {
-    this.ccUsers = settings?.ccUsers ?? [];
+  constructor(slackToken: string, slackChannelId: string) {
     this.slack = new SlackClient(slackToken);
     this.slackChannelId = slackChannelId;
   }
 
   async report(changes: SizeChange[]) {
-    // main message
     const { message } = await this.slack.chat.postMessage({
-      blocks: [this.generateHeaderBlock(), this.generateCcBlock(), { type: 'divider' }].filter(
-        (block) => !!block,
-      ) as any,
+      blocks: [this.generateHeaderBlock()],
       channel: this.slackChannelId,
       text: this.getHeaderText(),
     });
 
-    // threaded details
     if (message) {
       this.slack.chat.postMessage({
         blocks: changes.map(this.generateSectionBlock),
@@ -53,20 +47,6 @@ export class SlackReporter implements Reporter {
       type: 'section',
       text: { type: 'mrkdwn', text: this.getHeaderText() },
     };
-  }
-
-  private generateCcBlock() {
-    return this.ccUsers.length > 0
-      ? {
-          type: 'context',
-          elements: [
-            {
-              type: 'mrkdwn',
-              text: `cc ${this.ccUsers.map((user) => `<@${user}>`).join(', ')}`,
-            },
-          ],
-        }
-      : undefined;
   }
 
   private generateSectionBlock({ absolute, base, changed, relative }: SizeChange) {
