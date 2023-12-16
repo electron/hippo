@@ -8,8 +8,8 @@
     "scripts": {
         "start": "ts-node index.ts",
         "prepare": "husky install",
-        "lint": "prettier --check */*.ts",
-        "format": "prettier --write */*.ts"
+        "lint": "prettier --check \"src/**/*.ts\" index.ts",
+        "format": "prettier --write \"src/**/*.ts\" index.ts"
     },
     "keywords": [],
     "license": "MIT",
