@@ -9,9 +9,9 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c  # tag: v3.3.0
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: restore cache
-      uses: dawidd6/action-download-artifact@bd10f381a96414ce2b13a11bfa89902ba7cea07f  # tag: v.2.24.3
+      uses: dawidd6/action-download-artifact@bd10f381a96414ce2b13a11bfa89902ba7cea07f  # tag: v2.24.3
       continue-on-error: true
       with:
         name: cache
@@ -26,7 +26,7 @@ jobs:
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         CC_USERS: ${{ secrets.CC_USERS }}
     - name: persist cache
-      uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # tag: v3.1.2
+      uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392  # tag: v4.0.0
       with:
         name: cache
         path: .cache
