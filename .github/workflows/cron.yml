@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: restore cache
-      uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d  # tag: v3.0.0
+      uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67  # tag: v3.1.2
       continue-on-error: true
       with:
         name: cache
