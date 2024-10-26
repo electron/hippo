@@ -33,3 +33,4 @@ jobs:
       with:
         name: cache
         path: .cache
+        include-hidden-files: true
