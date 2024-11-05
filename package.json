@@ -7,30 +7,30 @@
     "main": "index.ts",
     "scripts": {
         "start": "ts-node index.ts",
-        "prepare": "husky install",
+        "prepare": "husky",
         "lint": "prettier --check \"src/**/*.ts\" index.ts",
         "format": "prettier --write \"src/**/*.ts\" index.ts"
     },
     "keywords": [],
     "license": "MIT",
     "devDependencies": {
-        "@types/node": "^20.10.4",
-        "@types/semver": "^7.3.9",
-        "husky": "^8.0.3",
+        "@types/node": "^22.9.0",
+        "@types/semver": "^7.5.8",
+        "husky": "^9.1.6",
         "lint-staged": "^15.2.0",
-        "prettier": "^3.1.0",
+        "prettier": "^3.3.3",
         "ts-node": "^10.6.0",
-        "typescript": "^5.3.3"
+        "typescript": "^5.6.3"
     },
     "lint-staged": {
         "*/*.ts": "prettier --write"
     },
     "dependencies": {
-        "@slack/bolt": "^3.11.3",
-        "dotenv": "^16.0.0",
-        "pg": "^8.7.3",
+        "@slack/bolt": "^4.1.0",
+        "dotenv": "^16.4.5",
+        "pg": "^8.13.1",
         "pg-hstore": "^2.3.4",
-        "semver": "^7.5.2",
-        "sequelize": "^6.29.0"
+        "semver": "^7.6.3",
+        "sequelize": "^6.37.5"
     }
 }
