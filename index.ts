@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { Comparator } from './src/comparator';
-import { ElectronDataSource } from './src/dataSource';
-import { SlackReporter } from './src/reporter';
+
+import { Comparator } from './src/comparator.ts';
+import { ElectronDataSource } from './src/dataSource.ts';
+import { SlackReporter } from './src/reporter.ts';
 
 const { SLACK_TOKEN, SLACK_CHANNEL_ID, POSTGRES_URI } = process.env;
 

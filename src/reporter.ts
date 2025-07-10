@@ -1,5 +1,5 @@
 import { WebClient as SlackClient } from '@slack/web-api';
-import { AssetMeta } from './dataSource';
+import { type AssetMeta } from './dataSource.ts';
 
 export interface SizeChange {
   absolute: number;

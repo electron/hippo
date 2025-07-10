@@ -4,12 +4,17 @@
     "author": "Micha Hanselmann",
     "description": "asset size comparison and reporting tool",
     "private": true,
+    "type": "module",
     "main": "index.ts",
     "scripts": {
-        "start": "ts-node index.ts",
+        "start": "node index.ts",
         "prepare": "husky",
         "lint": "prettier --check \"src/**/*.ts\" index.ts",
-        "format": "prettier --write \"src/**/*.ts\" index.ts"
+        "format": "prettier --write \"src/**/*.ts\" index.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "engines": {
+        "node": ">=24.0.0"
     },
     "keywords": [],
     "license": "MIT",
@@ -19,8 +24,7 @@
         "husky": "^9.1.6",
         "lint-staged": "^15.2.0",
         "prettier": "^3.3.3",
-        "ts-node": "^10.6.0",
-        "typescript": "^5.6.3"
+        "typescript": "^5.8.3"
     },
     "lint-staged": {
         "*/*.ts": "prettier --write"
