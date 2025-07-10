@@ -1,6 +1,6 @@
-import { FileCache } from './cache';
-import { AssetMeta, DataSource } from './dataSource';
-import { Reporter, SizeChange } from './reporter';
+import { FileCache } from './cache.ts';
+import type { AssetMeta, DataSource } from './dataSource.ts';
+import type { Reporter, SizeChange } from './reporter.ts';
 
 // only include relative size changes exceeding (0.5%)
 const RELATIVE_CHANGE_THRESHOLD = 0.005;
@@ -31,7 +31,7 @@ export class Comparator {
   async compareLatestVersions(): Promise<SizeChange[]> {
     const latestVersions = await this.source.getLatestVersions();
     console.log('latest versions:', latestVersions.join(', '));
-    const sizeChanges = [];
+    const sizeChanges: SizeChange[] = [];
     for (const version of latestVersions) {
       const previous = await this.source.getPreviousVersion(version);
       if (previous) {
