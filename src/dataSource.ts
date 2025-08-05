@@ -1,5 +1,5 @@
-import { Sequelize, Model, DataTypes, Op } from 'sequelize';
 import * as semver from 'semver';
+import { Octokit } from '@octokit/rest';
 
 export interface AssetMeta {
   sizeInBytes: number;
@@ -13,51 +13,74 @@ export interface DataSource {
   getPreviousVersion(ofVersion: string): Promise<string | undefined>;
 }
 
+interface ElectronRelease {
+  version: string;
+  date: string;
+  files: string[];
+  node: string;
+  v8: string;
+  uv: string;
+  zlib: string;
+  openssl: string;
+  modules: string;
+  lts: boolean;
+  security: boolean;
+}
+
 // include versions published in last x days
 const VERSION_RANGE_IN_DAYS = 60;
 
-// distsize table orm
-class ElectronDistSize extends Model {
-  declare platformArch: string;
-  declare size: number;
-  declare version: string;
-}
+const ASSET_REGEX =
+  /^electron-(v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|nightly).[0-9]+)?)-(.+?)-(.+?)(?:-(.+?))?\.zip$/;
 
-// electron dist binaries source using postgres database
+// electron dist binaries source using the electron headers JSON data
 export class ElectronDataSource implements DataSource {
-  // db connection
-  private sequelize: Sequelize;
+  private apiUrl: string;
+  private releases: ElectronRelease[] | null = null;
+  private octokit: Octokit;
 
-  constructor(postgresUri: string) {
-    this.sequelize = new Sequelize(postgresUri, {
-      dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
-      logging: process.env.NODE_ENV === 'dev',
+  constructor(apiUrl: string = 'https://electronjs.org/headers/index.json', githubToken?: string) {
+    this.apiUrl = apiUrl;
+    this.octokit = new Octokit({
+      auth: githubToken,
     });
-    this.registerOrmModels();
-  }
-
-  async closeConnection(): Promise<void> {
-    await this.sequelize.close();
   }
 
   async getAssetMetas(version: string): Promise<AssetMeta[]> {
-    const distSizes = await ElectronDistSize.findAll({
-      attributes: ['platformArch', 'size'],
-      where: {
-        assetName: 'electron',
-        suffix: 'dist',
-        version,
-      },
-    });
-    return distSizes.map(({ size, platformArch }) => ({
-      sizeInBytes: size,
-      targetPlatform: platformArch,
-      version,
-    }));
+    const assetMetas: AssetMeta[] = [];
+    try {
+      let tag = version;
+      if (!version.startsWith('v')) {
+        tag = `v${version}`;
+      }
+
+      // Get release data from GitHub API
+      const release = await this.octokit.rest.repos.getReleaseByTag({
+        owner: 'electron',
+        repo: version.includes('nightly') ? 'nightlies' : 'electron',
+        tag: tag,
+      });
+
+      // Filter and map assets to AssetMeta format
+      for (const asset of release.data.assets) {
+        const match = ASSET_REGEX.exec(asset.name);
+        if (!match || match[4]) continue;
+        const targetPlatform = `${match[2]}-${match[3]}`;
+        assetMetas.push({
+          sizeInBytes: asset.size,
+          targetPlatform,
+          version,
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching assets for version ${version}:`, error);
+    }
+    return assetMetas;
   }
 
   async getLatestVersions(): Promise<string[]> {
-    const versions = await this.fetchVersions();
+    const releases = await this.fetchReleases();
+    const versions = releases.map((release) => release.version);
     versions.sort(semver.rcompare);
 
     // is nightly predicate & filter nightlies
@@ -81,56 +104,44 @@ export class ElectronDataSource implements DataSource {
   }
 
   async getPreviousVersion(ofVersion: string): Promise<string | undefined> {
-    const versions = await this.fetchVersions();
+    const releases = await this.fetchReleases();
+    const versions = releases.map((release) => release.version);
     versions.sort(semver.compare);
 
     const index = versions.indexOf(ofVersion);
     return index > 0 ? versions[index - 1] : undefined;
   }
 
-  // fetch versions published in last x days
-  private async fetchVersions(rangeInDays: number = VERSION_RANGE_IN_DAYS): Promise<string[]> {
-    const distSizes = await ElectronDistSize.findAll({
-      attributes: ['version'],
-      group: ['version'],
-      where: {
-        assetName: 'electron',
-        released: { [Op.gt]: this.convertRangeToDate(rangeInDays) },
-        suffix: 'dist',
-      },
-    });
-    return distSizes.map(({ version }) => version);
+  // fetch releases from the electron headers API
+  private async fetchReleases(): Promise<ElectronRelease[]> {
+    if (this.releases) {
+      return this.releases;
+    }
+    try {
+      const response = await fetch(this.apiUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
+      }
+
+      const releases: ElectronRelease[] = await response.json();
+
+      // Filter releases by date range (last x days)
+      const cutoffDate = this.convertRangeToDate(VERSION_RANGE_IN_DAYS);
+
+      this.releases = releases.filter((release) => {
+        const releaseDate = new Date(release.date);
+        return releaseDate > cutoffDate;
+      });
+      return this.releases;
+    } catch (error) {
+      console.error('Error fetching electron releases:', error);
+      throw error;
+    }
   }
 
   // convert range in days to date
   private convertRangeToDate(rangeInDays: number): Date {
     const milliseconds = 1000 * 60 * 60 * 24 * rangeInDays;
     return new Date(Date.now() - milliseconds);
-  }
-
-  private registerOrmModels(): void {
-    ElectronDistSize.init(
-      {
-        arch: DataTypes.STRING,
-        assetId: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-        },
-        assetName: DataTypes.STRING,
-        platform: DataTypes.STRING,
-        platformArch: DataTypes.STRING,
-        released: DataTypes.DATE,
-        size: DataTypes.INTEGER,
-        suffix: DataTypes.STRING,
-        version: DataTypes.STRING,
-      },
-      {
-        modelName: 'DistSize',
-        sequelize: this.sequelize,
-        tableName: 'dist_size',
-        timestamps: false,
-        underscored: true,
-      },
-    );
   }
 }

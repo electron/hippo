@@ -30,11 +30,9 @@
         "*/*.ts": "prettier --write"
     },
     "dependencies": {
+        "@octokit/rest": "^22.0.0",
         "@slack/bolt": "^4.1.0",
         "dotenv": "^16.4.5",
-        "pg": "^8.13.1",
-        "pg-hstore": "^2.3.4",
-        "semver": "^7.6.3",
-        "sequelize": "^6.37.5"
+        "semver": "^7.6.3"
     }
 }
