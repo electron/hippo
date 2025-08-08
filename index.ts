@@ -4,10 +4,10 @@ import { Comparator } from './src/comparator.ts';
 import { ElectronDataSource } from './src/dataSource.ts';
 import { SlackReporter } from './src/reporter.ts';
 
-const { SLACK_TOKEN, SLACK_CHANNEL_ID, POSTGRES_URI } = process.env;
+const { SLACK_TOKEN, SLACK_CHANNEL_ID } = process.env;
 
 const main = async () => {
-  const source = new ElectronDataSource(POSTGRES_URI ?? 'invalid-uri');
+  const source = new ElectronDataSource();
   const reporter = new SlackReporter(
     SLACK_TOKEN ?? 'invalid-token',
     SLACK_CHANNEL_ID ?? 'invalid-id',
@@ -16,7 +16,6 @@ const main = async () => {
   const comparator = new Comparator(source, reporter);
 
   await comparator.compareLatestVersions();
-  await source.closeConnection();
 };
 
 main().catch((err) => {

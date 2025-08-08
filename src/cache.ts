@@ -6,7 +6,7 @@ interface Cache {
 }
 
 // cache file path
-const CACHE_FILE = '.cache';
+export const CACHE_FILE = '.cache';
 
 // file-based cache for string keys
 export class FileCache implements Cache {

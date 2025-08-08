@@ -8,9 +8,10 @@
     "main": "index.ts",
     "scripts": {
         "start": "node index.ts",
+        "test": "node --test tests/*.test.ts",
         "prepare": "husky",
-        "lint": "prettier --check \"src/**/*.ts\" index.ts",
-        "format": "prettier --write \"src/**/*.ts\" index.ts",
+        "lint": "prettier --check \"**/*.ts\" index.ts",
+        "format": "prettier --write \"**/*.ts\" index.ts",
         "typecheck": "tsc --noEmit"
     },
     "engines": {
@@ -30,11 +31,9 @@
         "*/*.ts": "prettier --write"
     },
     "dependencies": {
-        "@slack/bolt": "^4.1.0",
+        "@octokit/rest": "^22.0.0",
+        "@slack/web-api": "^7.9.3",
         "dotenv": "^16.4.5",
-        "pg": "^8.13.1",
-        "pg-hstore": "^2.3.4",
-        "semver": "^7.6.3",
-        "sequelize": "^6.37.5"
+        "semver": "^7.6.3"
     }
 }
