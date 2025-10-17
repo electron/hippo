@@ -1,3 +1,4 @@
 node_modules/
 .env
 .cache
+.yarn/install-state.gz

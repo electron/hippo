@@ -23,10 +23,10 @@ jobs:
       with:
         name: cache
         workflow: cron.yml
-    - name: npm install
-      run: npm install
-    - name: npm start
-      run: npm start
+    - name: yarn install
+      run: yarn install --immutable
+    - name: yarn start
+      run: yarn start
       env:
         POSTGRES_URI: ${{ secrets.POSTGRES_URI }}
         SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
