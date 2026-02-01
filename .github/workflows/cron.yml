@@ -20,7 +20,7 @@ jobs:
       with:
         node-version: 24.x
     - name: restore cache
-      uses: dawidd6/action-download-artifact@0bd50d53a6d7fb5cb921e607957e9cc12b4ce392  # tag: v12
+      uses: dawidd6/action-download-artifact@883bc3da0e2f55ddd0a8fc8e99378551c1991a55  # tag: v13
       continue-on-error: true
       with:
         name: cache
