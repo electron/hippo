@@ -59,7 +59,7 @@ describe('Comparator', () => {
     it('should compare versions and return size changes', async () => {
       const changes = await comparator.compare(baseVersion, changedVersion);
 
-      assert.strictEqual(changes.length, 3);
+      assert.strictEqual(changes.length, 4);
       assert.strictEqual(changes[0].base.targetPlatform, 'darwin-arm64');
       assert.strictEqual(changes[0].absolute, 5000000); // 5MB increase
       assert.strictEqual(changes[0].relative, 0.05); // 5% increase
@@ -79,6 +79,10 @@ describe('Comparator', () => {
       const linuxChange = changes.find((c) => c.base.targetPlatform === 'linux-x64');
       assert.ok(linuxChange);
       assert.ok(Math.abs(linuxChange.relative - -0.00909) < 0.001); // ~-0.91%
+
+      const win32Arm64Change = changes.find((c) => c.base.targetPlatform === 'win32-arm64');
+      assert.ok(win32Arm64Change);
+      assert.strictEqual(win32Arm64Change.relative, -0.11); // -11%
     });
 
     it('should report significant changes based on threshold', async () => {
@@ -91,17 +95,23 @@ describe('Comparator', () => {
 
       await comparator.compare(baseVersion, changedVersion);
 
-      // With default threshold (0.005 = 0.5%), only darwin-arm64 (5%) should be reported
-      // Check that report was called with at least one change
+      // With default threshold (0.04 = 4%), darwin-arm64 (5%) and win32-arm64 (-11%) are reported
       assert.strictEqual((mockReporter.report as any).mock.calls.length, 1);
 
-      // Verify the reported change includes darwin-arm64
       const reportedChanges = (mockReporter.report as any).mock.calls[0].arguments[0];
+      assert.strictEqual(reportedChanges.length, 2);
+
       const darwinChange = reportedChanges.find(
         (c: any) => c.base.targetPlatform === 'darwin-arm64',
       );
       assert.ok(darwinChange);
       assert.strictEqual(darwinChange.relative, 0.05);
+
+      const win32Arm64Change = reportedChanges.find(
+        (c: any) => c.base.targetPlatform === 'win32-arm64',
+      );
+      assert.ok(win32Arm64Change);
+      assert.strictEqual(win32Arm64Change.relative, -0.11);
     });
 
     it('should cache reported changes', async () => {
