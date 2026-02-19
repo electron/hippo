@@ -107,39 +107,29 @@ describe('main application', () => {
       const lastCallChanges = reporter.getLastCall();
 
       assert.ok(lastCallChanges);
-      assert.strictEqual(lastCallChanges.length, 3, 'Expected 3 size changes to be reported');
+      // With the 4% threshold, darwin-arm64 (+5%) and win32-arm64 (-11%) exceed it;
+      // win32-x64 (~0.83%) and linux-x64 (~-0.91%) do not
+      assert.strictEqual(lastCallChanges.length, 2, 'Expected 2 size changes to be reported');
 
-      // Verify each platform's size changes
+      // Assert darwin-arm64 changes (increase from 100MB to 105MB, +5%)
       const darwinChange = lastCallChanges.find(
         (change) => change.base.targetPlatform === 'darwin-arm64',
       );
-      const win32Change = lastCallChanges.find(
-        (change) => change.base.targetPlatform === 'win32-x64',
-      );
-      const linuxChange = lastCallChanges.find(
-        (change) => change.base.targetPlatform === 'linux-x64',
-      );
-
-      // Assert darwin-arm64 changes (increase from 100MB to 105MB)
       assert.ok(darwinChange, 'Expected darwin-arm64 change');
       assert.strictEqual(darwinChange.base.sizeInBytes, 100000000);
       assert.strictEqual(darwinChange.changed.sizeInBytes, 105000000);
       assert.strictEqual(darwinChange.absolute, 5000000);
       assert.strictEqual(darwinChange.relative, 0.05);
 
-      // Assert win32-x64 changes (increase from 120MB to 121MB)
-      assert.ok(win32Change, 'Expected win32-x64 change');
-      assert.strictEqual(win32Change.base.sizeInBytes, 120000000);
-      assert.strictEqual(win32Change.changed.sizeInBytes, 121000000);
-      assert.strictEqual(win32Change.absolute, 1000000);
-      assert.strictEqual(win32Change.relative, 0.008333333333333333);
-
-      // Assert linux-x64 changes (decrease from 110MB to 109MB)
-      assert.ok(linuxChange, 'Expected linux-x64 change');
-      assert.strictEqual(linuxChange.base.sizeInBytes, 110000000);
-      assert.strictEqual(linuxChange.changed.sizeInBytes, 109000000);
-      assert.strictEqual(linuxChange.absolute, -1000000);
-      assert.strictEqual(linuxChange.relative, -0.00909090909090909);
+      // Assert win32-arm64 changes (decrease from 100MB to 89MB, -11%)
+      const win32Arm64Change = lastCallChanges.find(
+        (change) => change.base.targetPlatform === 'win32-arm64',
+      );
+      assert.ok(win32Arm64Change, 'Expected win32-arm64 change');
+      assert.strictEqual(win32Arm64Change.base.sizeInBytes, 100000000);
+      assert.strictEqual(win32Arm64Change.changed.sizeInBytes, 89000000);
+      assert.strictEqual(win32Arm64Change.absolute, -11000000);
+      assert.strictEqual(win32Arm64Change.relative, -0.11);
     });
   });
 });
