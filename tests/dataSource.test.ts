@@ -99,6 +99,17 @@ describe('ElectronDataSource', () => {
       const previousVersion = await dataSource.getPreviousVersion('99.0.0');
       assert.strictEqual(previousVersion, undefined);
     });
+
+    it('should find previous prerelease version within same major', async () => {
+      (dataSource as any).releases = [
+        { version: '39.0.0', date: generateRecentDate(30) },
+        { version: '41.0.0-nightly.20260119', date: generateRecentDate(25) },
+        { version: '41.0.0-alpha.1', date: generateRecentDate(20) },
+        { version: '41.0.0-alpha.2', date: generateRecentDate(10) },
+      ];
+      const previous = await dataSource.getPreviousVersion('41.0.0-alpha.1');
+      assert.strictEqual(previous, '41.0.0-nightly.20260119');
+    });
   });
 
   describe('getAssetMetas', () => {
