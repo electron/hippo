@@ -33,6 +33,22 @@ const VERSION_RANGE_IN_DAYS = 60;
 const ASSET_REGEX =
   /^electron-(v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|nightly).[0-9]+)?)-(.+?)-(.+?)(?:-(.+?))?\.zip$/;
 
+// Refs https://github.com/electron/fiddle-core/blob/6637bbdf5879e4aefd81c858d51d335ca207921f/src/versions.ts#L86-L96
+function compareVersions(a: string, b: string): number {
+  const aSemver = semver.parse(a);
+  const bSemver = semver.parse(b);
+
+  const l = aSemver.compareMain(bSemver);
+  if (l) return l;
+  // Electron's approach is nightly -> other prerelease tags -> stable,
+  // so force `nightly` to sort before other prerelease tags.
+  const [prea] = aSemver.prerelease;
+  const [preb] = bSemver.prerelease;
+  if (prea === 'nightly' && preb !== 'nightly') return -1;
+  if (prea !== 'nightly' && preb === 'nightly') return 1;
+  return aSemver.comparePre(bSemver);
+}
+
 // electron dist binaries source using the electron headers JSON data
 export class ElectronDataSource implements DataSource {
   private apiUrl: string;
@@ -79,7 +95,14 @@ export class ElectronDataSource implements DataSource {
   }
 
   async getLatestVersions(): Promise<string[]> {
-    const releases = await this.fetchReleases();
+    // Filter releases by date range (last x days)
+    const cutoffDate = this.convertRangeToDate(VERSION_RANGE_IN_DAYS);
+
+    const releases = (await this.fetchReleases()).filter((release) => {
+      const releaseDate = new Date(release.date);
+      return releaseDate > cutoffDate;
+    });
+
     const versions = releases.map((release) => release.version);
     versions.sort(semver.rcompare);
 
@@ -106,7 +129,7 @@ export class ElectronDataSource implements DataSource {
   async getPreviousVersion(ofVersion: string): Promise<string | undefined> {
     const releases = await this.fetchReleases();
     const versions = releases.map((release) => release.version);
-    versions.sort(semver.compare);
+    versions.sort(compareVersions);
 
     const index = versions.indexOf(ofVersion);
     return index > 0 ? versions[index - 1] : undefined;
@@ -123,15 +146,8 @@ export class ElectronDataSource implements DataSource {
         throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
       }
 
-      const releases: ElectronRelease[] = await response.json();
+      this.releases = await response.json();
 
-      // Filter releases by date range (last x days)
-      const cutoffDate = this.convertRangeToDate(VERSION_RANGE_IN_DAYS);
-
-      this.releases = releases.filter((release) => {
-        const releaseDate = new Date(release.date);
-        return releaseDate > cutoffDate;
-      });
       return this.releases;
     } catch (error) {
       console.error('Error fetching electron releases:', error);
