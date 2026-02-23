@@ -1,4 +1,3 @@
-import { WebClient as SlackClient } from '@slack/web-api';
 import { type AssetMeta } from './dataSource.ts';
 
 export interface SizeChange {
@@ -12,24 +11,47 @@ export interface Reporter {
   report(changes: SizeChange[]): void;
 }
 
+interface ChatPostMessageArguments {
+  blocks: {
+    type: string;
+    text: {
+      type: string;
+      text: string;
+    };
+  }[];
+  channel: string;
+  text: string;
+  thread_ts?: string;
+}
+
+interface ChatPostMessageResponseMessage {
+  ts?: string;
+}
+
+interface ChatPostMessageResponse {
+  error?: string;
+  message?: ChatPostMessageResponseMessage;
+  ok?: boolean;
+}
+
 export class SlackReporter implements Reporter {
-  private slack: SlackClient;
   private slackChannelId: string;
+  private slackToken: string;
 
   constructor(slackToken: string, slackChannelId: string) {
-    this.slack = new SlackClient(slackToken);
+    this.slackToken = slackToken;
     this.slackChannelId = slackChannelId;
   }
 
   async report(changes: SizeChange[]) {
-    const { message } = await this.slack.chat.postMessage({
+    const { message } = await this.postChatMessage({
       blocks: [this.generateHeaderBlock()],
       channel: this.slackChannelId,
       text: this.getHeaderText(),
     });
 
     if (message) {
-      this.slack.chat.postMessage({
+      this.postChatMessage({
         blocks: changes.map(this.generateSectionBlock),
         channel: this.slackChannelId,
         text: '(see message for details)',
@@ -61,5 +83,38 @@ export class SlackReporter implements Reporter {
       text: { text, type: 'mrkdwn' },
       type: 'section',
     };
+  }
+
+  private async postChatMessage({
+    blocks,
+    channel,
+    text,
+    thread_ts,
+  }: ChatPostMessageArguments): Promise<ChatPostMessageResponse> {
+    const resp = await fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.slackToken}`,
+      },
+      body: JSON.stringify({
+        blocks,
+        channel,
+        text,
+        thread_ts,
+      }),
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Failed to post message to Slack: ${resp.statusText}`);
+    }
+
+    const { ok, error, ...payload } = await resp.json();
+
+    if (!ok) {
+      throw new Error(`Slack API error: ${payload.error}`);
+    }
+
+    return payload;
   }
 }
