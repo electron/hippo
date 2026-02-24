@@ -40,12 +40,9 @@ describe('SlackReporter', () => {
       // We expect this to either succeed or fail gracefully
       try {
         // Mock the slack client to avoid real API calls
-        const mockPostMessage = mock.fn(() =>
+        mock.method(reporter as any, 'postChatMessage', () =>
           Promise.resolve({ ok: true, message: { ts: '123' } }),
         );
-        (reporter as any).slack = {
-          chat: { postMessage: mockPostMessage },
-        };
 
         await reporter.report([]);
         assert.ok(true);
@@ -62,15 +59,9 @@ describe('SlackReporter', () => {
       ];
 
       // Mock the WebClient to avoid actual Slack API calls
-      const mockPostMessage = mock.fn(() => Promise.resolve({ ok: true }));
-      const mockWebClient = {
-        chat: {
-          postMessage: mockPostMessage,
-        },
-      };
-
-      // Replace the internal slack client
-      (reporter as any).slack = mockWebClient;
+      const mockPostMessage = mock.method(reporter as any, 'postChatMessage', () =>
+        Promise.resolve({ message: { ts: '123' } }),
+      );
 
       try {
         await reporter.report(sizeChanges);
@@ -86,14 +77,9 @@ describe('SlackReporter', () => {
         createMockSizeChange('linux-x64', 'v37.0.0', 'v38.0.0', 110000000, 105000000), // -5MB, -4.5%
       ];
 
-      const mockPostMessage = mock.fn(() => Promise.resolve({ ok: true }));
-      const mockWebClient = {
-        chat: {
-          postMessage: mockPostMessage,
-        },
-      };
-
-      (reporter as any).slack = mockWebClient;
+      const mockPostMessage = mock.method(reporter as any, 'postChatMessage', () =>
+        Promise.resolve({}),
+      );
 
       try {
         await reporter.report(sizeChanges);
@@ -108,14 +94,9 @@ describe('SlackReporter', () => {
         createMockSizeChange('darwin-arm64', 'v37.0.0', 'v38.0.0', 100000000, 105000000),
       ];
 
-      const mockPostMessage = mock.fn(() => Promise.reject(new Error('Slack API Error')));
-      const mockWebClient = {
-        chat: {
-          postMessage: mockPostMessage,
-        },
-      };
-
-      (reporter as any).slack = mockWebClient;
+      mock.method(reporter as any, 'postChatMessage', () =>
+        Promise.reject(new Error('Slack API Error')),
+      );
 
       // The reporter should handle errors gracefully and not throw
       try {

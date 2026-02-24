@@ -32,7 +32,6 @@
     },
     "dependencies": {
         "@octokit/rest": "^22.0.0",
-        "@slack/web-api": "^7.9.3",
         "dotenv": "^16.4.5",
         "semver": "^7.6.3"
     },
