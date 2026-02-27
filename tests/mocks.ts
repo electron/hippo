@@ -16,6 +16,7 @@ export const getBaseMetas = (baseVersion: string): AssetMeta[] => {
     createMockAssetMeta('darwin-arm64', baseVersion, 100000000), // 100MB
     createMockAssetMeta('win32-x64', baseVersion, 120000000), // 120MB
     createMockAssetMeta('linux-x64', baseVersion, 110000000), // 110MB
+    createMockAssetMeta('win32-arm64', baseVersion, 100000000), // 100MB
   ];
 };
 
@@ -24,6 +25,7 @@ export const getChangedMetas = (changedVersion: string): AssetMeta[] => {
     createMockAssetMeta('darwin-arm64', changedVersion, 105000000), // 105MB (+5MB, +5%)
     createMockAssetMeta('win32-x64', changedVersion, 121000000), // 121MB (+1MB, ~0.83%)
     createMockAssetMeta('linux-x64', changedVersion, 109000000), // 109MB (-1MB, ~-0.91%)
+    createMockAssetMeta('win32-arm64', changedVersion, 89000000), // 89MB (-11MB, -11%)
   ];
 };
 
