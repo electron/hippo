@@ -107,7 +107,7 @@ describe('main application', () => {
       const lastCallChanges = reporter.getLastCall();
 
       assert.ok(lastCallChanges);
-      // With the 4% threshold, darwin-arm64 (+5%) and win32-arm64 (-11%) exceed it;
+      // With the 2% threshold, darwin-arm64 (+5%) and win32-arm64 (-11%) exceed it;
       // win32-x64 (~0.83%) and linux-x64 (~-0.91%) do not
       assert.strictEqual(lastCallChanges.length, 2, 'Expected 2 size changes to be reported');
 

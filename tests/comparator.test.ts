@@ -95,7 +95,7 @@ describe('Comparator', () => {
 
       await comparator.compare(baseVersion, changedVersion);
 
-      // With default threshold (0.04 = 4%), darwin-arm64 (5%) and win32-arm64 (-11%) are reported
+      // With default threshold (0.02 = 2%), darwin-arm64 (5%) and win32-arm64 (-11%) are reported
       assert.strictEqual((mockReporter.report as any).mock.calls.length, 1);
 
       const reportedChanges = (mockReporter.report as any).mock.calls[0].arguments[0];

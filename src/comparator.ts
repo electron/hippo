@@ -2,8 +2,8 @@ import { FileCache } from './cache.ts';
 import type { AssetMeta, DataSource } from './dataSource.ts';
 import type { Reporter, SizeChange } from './reporter.ts';
 
-// only include relative size changes exceeding (4%)
-const RELATIVE_CHANGE_THRESHOLD = 0.04;
+// only include relative size changes exceeding (2%)
+const RELATIVE_CHANGE_THRESHOLD = 0.02;
 
 export class Comparator {
   private cache: FileCache;
