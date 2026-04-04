@@ -20,11 +20,14 @@ jobs:
       with:
         node-version: 24.x
     - name: restore cache
-      uses: dawidd6/action-download-artifact@8a338493df3d275e4a7a63bcff3b8fe97e51a927  # tag: v19
-      continue-on-error: true
-      with:
-        name: cache
-        workflow: cron.yml
+      run: |
+        RUN_ID=$(gh run list --workflow cron.yml --branch main --status completed --limit 1 --json databaseId --jq '.[0].databaseId')
+        if [ -n "$RUN_ID" ]; then
+          gh run download "$RUN_ID" --name cache
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
     - name: yarn install
       run: yarn install --immutable
     - name: yarn start
